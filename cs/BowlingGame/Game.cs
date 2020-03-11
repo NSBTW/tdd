@@ -27,7 +27,7 @@ namespace BowlingGame
             if (currentFrameNum >= 10) return;
             if (frames[currentFrameNum].IsFinished)
                 currentFrameNum++;
-            if(currentFrameNum == 10)
+            if (currentFrameNum == 10)
                 return;
             frames[currentFrameNum].Roll(pins);
         }
@@ -56,8 +56,13 @@ namespace BowlingGame
                     return;
                 Rolls[currentRollNum++] = pins;
                 if (Rolls.Any(r => r == 10))
+                {
                     IsStrike = true;
-                if (currentRollNum!= Rolls.Length) return;
+                    IsFinished = true;
+                    return;
+                }
+
+                if (currentRollNum != Rolls.Length) return;
                 IsFinished = true;
                 if (Rolls.Sum() == 10 && !IsStrike)
                     IsSpare = true;
@@ -69,7 +74,7 @@ namespace BowlingGame
                 if (IsSpare && nextFrame != null)
                     score += nextFrame.Rolls[0];
                 if (IsStrike && nextFrame != null)
-                    score += nextFrame.GetScore();
+                    score += nextFrame.Rolls.Sum() + (nextFrame.IsStrike ? nextFrame.nextFrame.Rolls[0] : 0);
                 return score;
             }
 
@@ -147,15 +152,36 @@ namespace BowlingGame
 
             game.GetScore().Should().Be(15);
         }
+
         [Test]
         public void GetBonusAfterStrikeInNotLastFrame()
         {
-            game.Roll(5);
-            game.Roll(5);
+            game.Roll(10);
             game.Roll(2);
             game.Roll(1);
 
             game.GetScore().Should().Be(16);
+        }
+
+        [Test]
+        public void GetBonusAfter2StrikesInNotLastFrame()
+        {
+            game.Roll(10);
+            game.Roll(10);
+            game.Roll(1);
+            game.Roll(1);
+            game.GetScore().Should().Be(35);
+        }
+        [Test]
+        public void CorrectWorkWith2StrikesInLastFrame()
+        {
+            for (int i = 0; i < 18; i++)
+            {
+                game.Roll(1);
+            }
+            game.Roll(10);
+            game.Roll(10);
+            game.GetScore().Should().Be(48);
         }
     }
 }
