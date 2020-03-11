@@ -53,13 +53,13 @@ namespace BowlingGame
 
             internal void Roll(int pins)
             {
-                if (Rolls[0] + pins > 10 && nextFrame!=null)
+                if (Rolls[0] + pins > 10 && nextFrame != null)
                 {
                     throw new ArgumentException(nameof(pins));
                 }
 
                 Rolls[currentRollNum++] = pins;
-                if (Rolls.Any(r => r == 10) && nextFrame!=null)
+                if (Rolls.Any(r => r == 10) && nextFrame != null)
                 {
                     IsStrike = true;
                     IsFinished = true;
@@ -123,10 +123,16 @@ namespace BowlingGame
                 .Should().Be(0);
         }
 
+        private void DoRolls(params int[] rolls)
+        {
+            foreach (var roll in rolls)
+                game.Roll(roll);
+        }
+
         [Test]
         public void HaveTheScore_TheSameWithTheFirstRoll()
         {
-            game.Roll(1);
+            DoRolls(1);
             game
                 .GetScore()
                 .Should()
@@ -136,111 +142,83 @@ namespace BowlingGame
         [Test]
         public void ThrowsArgumentException_onMoreThan10Pins()
         {
-            Assert.Throws<ArgumentException>(() => game.Roll(11));
+            Assert.Throws<ArgumentException>(() => DoRolls(11));
         }
 
         [Test]
         public void ThrowsArgumentException_onNegativeNumbers()
         {
-            Assert.Throws<ArgumentException>(() => game.Roll(-1));
+            Assert.Throws<ArgumentException>(() => DoRolls(-1));
         }
 
         [Test]
         public void GetScoreDoestChange_After21Rolls()
         {
-            for (int i = 0; i < 21; i++)
-            {
-                game.Roll(1);
-            }
-
+            DoRolls(Enumerable.Repeat(1, 21).ToArray());
             var score = game.GetScore();
-            game.Roll(1);
+            DoRolls(1);
             game.GetScore().Should().Be(score);
         }
 
         [Test]
         public void GetBonusAfterSpareInNotLastFrame()
         {
-            game.Roll(5);
-            game.Roll(5);
-            game.Roll(2);
-            game.Roll(1);
-
+            DoRolls(5, 5, 2, 1);
             game.GetScore().Should().Be(15);
         }
 
         [Test]
         public void GetBonusAfterStrikeInNotLastFrame()
         {
-            game.Roll(10);
-            game.Roll(2);
-            game.Roll(1);
-
+            DoRolls(10, 2, 1);
             game.GetScore().Should().Be(16);
         }
 
         [Test]
         public void GetBonusAfter2StrikesInNotLastFrame()
         {
-            game.Roll(10);
-            game.Roll(10);
-            game.Roll(1);
-            game.Roll(1);
+            DoRolls(10, 10, 1, 1);
             game.GetScore().Should().Be(35);
         }
+
         [Test]
         public void GetCorrectScoreWith2StrikesInLastFrame()
         {
-            for (int i = 0; i < 18; i++)
-            {
-                game.Roll(1);
-            }
+            DoRolls(Enumerable.Repeat(1, 18).ToArray());
+            DoRolls(10, 10);
 
-            game.Roll(10);
-            game.Roll(10);
             game.GetScore().Should().Be(48);
         }
+
         [Test]
         public void GetCorrectScoreWithSpareInLastFrame()
         {
-            for (int i = 0; i < 18; i++)
-            {
-                game.Roll(1);
-            }
+            DoRolls(Enumerable.Repeat(1, 18).ToArray());
 
-            game.Roll(5);
-            game.Roll(5);
-            game.Roll(1);
+            DoRolls(5, 5, 1);
             game.GetScore().Should().Be(30);
         }
+
         [Test]
         public void ThrowArgumentExceptionAfterFrameGreaterThan10()
         {
-            game.Roll(6);
+            DoRolls(6);
             Assert.Throws<ArgumentException>(() => game.Roll(6));
         }
 
         [Test]
         public void GetCorrectScoreInLastFrame()
         {
-            for (int i = 0; i < 18; i++)
-            {
-                game.Roll(1);
-            }
+            DoRolls(Enumerable.Repeat(1, 18).ToArray());
 
-            game.Roll(4);
-            game.Roll(5);
-            game.Roll(1);
+            DoRolls(4, 5, 1);
             game.GetScore().Should().Be(28);
         }
 
         [Test]
         public void GetMaxScoreAfterAllStrike()
         {
-            for (int i = 0; i < 11; i++)
-            {
-                game.Roll(10);
-            }
+            DoRolls(Enumerable.Repeat(10, 11).ToArray());
 
             game.GetScore().Should().Be(300);
         }
@@ -248,16 +226,9 @@ namespace BowlingGame
         [Test]
         public void ThrowArgumentExceptionInLastFrameGreaterThan10()
         {
-            for (int i = 0; i < 18; i++)
-            {
-                game.Roll(1);
-            }
-
-            game.Roll(4);
-            game.Roll(4);
+            DoRolls(Enumerable.Repeat(1, 18).ToArray());
+            DoRolls(4, 4);
             Assert.Throws<ArgumentException>(() => game.Roll(4));
-            
         }
-
     }
 }
