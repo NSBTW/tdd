@@ -37,7 +37,8 @@ namespace BowlingGame
 
         private class Frame
         {
-            internal bool IsSpare { get; private set; } = false;
+            internal bool IsStrike { get; private set; }
+            internal bool IsSpare { get; private set; }
             internal int[] Rolls { get; private set; }
             internal readonly Frame nextFrame;
 
@@ -47,17 +48,18 @@ namespace BowlingGame
                 Rolls = nextFrame is null ? new int[3] : new int[2];
             }
 
-            private byte currentRoll = 0;
+            private byte currentRollNum = 0;
 
             internal void Roll(int pins)
             {
                 if (IsFinished)
                     return;
-                Rolls[currentRoll++] = pins;
-
-                if (currentRoll != Rolls.Length) return;
+                Rolls[currentRollNum++] = pins;
+                if (Rolls.Any(r => r == 10))
+                    IsStrike = true;
+                if (currentRollNum!= Rolls.Length) return;
                 IsFinished = true;
-                if (Rolls.Sum() == 10)
+                if (Rolls.Sum() == 10 && !IsStrike)
                     IsSpare = true;
             }
 
@@ -66,6 +68,8 @@ namespace BowlingGame
                 var score = Rolls.Sum();
                 if (IsSpare && nextFrame != null)
                     score += nextFrame.Rolls[0];
+                if (IsStrike && nextFrame != null)
+                    score += nextFrame.GetScore();
                 return score;
             }
 
@@ -99,7 +103,7 @@ namespace BowlingGame
         }
 
         [Test]
-        public void HaveTheScore_TheSaeWithTheFirstRoll()
+        public void HaveTheScore_TheSameWithTheFirstRoll()
         {
             game.Roll(1);
             game
