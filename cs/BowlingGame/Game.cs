@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.Data.SqlClient;
 using System.Linq;
 using BowlingGame.Infrastructure;
 using FluentAssertions;
@@ -55,13 +56,15 @@ namespace BowlingGame
                 if (IsFinished)
                     return;
                 Rolls[currentRollNum++] = pins;
-                if (Rolls.Any(r => r == 10))
+                if (Rolls.Any(r => r == 10) && nextFrame!=null)
                 {
                     IsStrike = true;
                     IsFinished = true;
                     return;
                 }
 
+                if (nextFrame == null && Rolls[0] == 10 && Rolls[1] == 10)
+                    IsFinished = true;
                 if (currentRollNum != Rolls.Length) return;
                 IsFinished = true;
                 if (Rolls.Sum() == 10 && !IsStrike)
@@ -75,6 +78,11 @@ namespace BowlingGame
                     score += nextFrame.Rolls[0];
                 if (IsStrike && nextFrame != null)
                     score += nextFrame.Rolls.Sum() + (nextFrame.IsStrike ? nextFrame.nextFrame.Rolls[0] : 0);
+                if (nextFrame == null && Rolls[0] == 10)
+                {
+                    score += Rolls[1] + Rolls[2];
+                }
+
                 return score;
             }
 
@@ -179,9 +187,23 @@ namespace BowlingGame
             {
                 game.Roll(1);
             }
+
             game.Roll(10);
             game.Roll(10);
             game.GetScore().Should().Be(48);
+        }
+        [Test]
+        public void CorrectWorkWithSpareInLastFrame()
+        {
+            for (int i = 0; i < 18; i++)
+            {
+                game.Roll(1);
+            }
+
+            game.Roll(5);
+            game.Roll(5);
+            game.Roll(1);
+            game.GetScore().Should().Be(30);
         }
     }
 }
