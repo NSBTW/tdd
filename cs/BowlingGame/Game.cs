@@ -53,8 +53,11 @@ namespace BowlingGame
 
             internal void Roll(int pins)
             {
-                if (IsFinished)
-                    return;
+                if (Rolls[0] + pins > 10 && nextFrame!=null)
+                {
+                    throw new ArgumentException(nameof(pins));
+                }
+
                 Rolls[currentRollNum++] = pins;
                 if (Rolls.Any(r => r == 10) && nextFrame!=null)
                 {
@@ -211,10 +214,50 @@ namespace BowlingGame
             game.GetScore().Should().Be(30);
         }
         [Test]
-        public void PinsInFrameThrowsArgumentExceptionIfGreaterThan10()
+        public void ThrowArgumentExceptionAfterFrameGreaterThan10()
         {
             game.Roll(6);
             Assert.Throws<ArgumentException>(() => game.Roll(6));
         }
+
+        [Test]
+        public void CorrectWorkInLastFrame()
+        {
+            for (int i = 0; i < 18; i++)
+            {
+                game.Roll(1);
+            }
+
+            game.Roll(4);
+            game.Roll(5);
+            game.Roll(1);
+            game.GetScore().Should().Be(28);
+        }
+
+        [Test]
+        public void GetMaxScoreAfterAllStrike()
+        {
+            for (int i = 0; i < 11; i++)
+            {
+                game.Roll(10);
+            }
+
+            game.GetScore().Should().Be(300);
+        }
+
+        [Test]
+        public void ThrowArgumentExceptionInLastFrameGreaterThan10()
+        {
+            for (int i = 0; i < 18; i++)
+            {
+                game.Roll(1);
+            }
+
+            game.Roll(4);
+            game.Roll(4);
+            Assert.Throws<ArgumentException>(() => game.Roll(4));
+            
+        }
+
     }
 }
