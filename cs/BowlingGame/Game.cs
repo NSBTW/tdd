@@ -67,7 +67,7 @@ namespace BowlingGame
                     IsFinished = true;
                 if (currentRollNum != Rolls.Length) return;
                 IsFinished = true;
-                if (Rolls.Sum() == 10 && !IsStrike)
+                if (Rolls.Sum() == 10 && !IsStrike && nextFrame != null)
                     IsSpare = true;
             }
 
@@ -81,6 +81,11 @@ namespace BowlingGame
                 if (nextFrame == null && Rolls[0] == 10)
                 {
                     score += Rolls[1] + Rolls[2];
+                }
+
+                if (nextFrame == null && Rolls[1] + Rolls[0] == 10)
+                {
+                    score += Rolls[2];
                 }
 
                 return score;
@@ -204,6 +209,12 @@ namespace BowlingGame
             game.Roll(5);
             game.Roll(1);
             game.GetScore().Should().Be(30);
+        }
+        [Test]
+        public void PinsInFrameThrowsArgumentExceptionIfGreaterThan10()
+        {
+            game.Roll(6);
+            Assert.Throws<ArgumentException>(() => game.Roll(6));
         }
     }
 }
