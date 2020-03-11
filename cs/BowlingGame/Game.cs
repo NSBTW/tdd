@@ -14,8 +14,9 @@ namespace BowlingGame
 
         public Game()
         {
-            for (int i = 0; i < 10; i++)
-                frames[i] = new Frame(i == 10);
+            frames[9] = new Frame(null);
+            for (int i = 8; i >= 0; i--)
+                frames[i] = new Frame(frames[i + 1]);
         }
 
 
@@ -36,11 +37,14 @@ namespace BowlingGame
 
         private class Frame
         {
-            private int[] rolls;
+            internal bool IsSpare { get; private set; } = false;
+            internal int[] Rolls { get; private set; }
+            internal readonly Frame nextFrame;
 
-            internal Frame(bool isLast)
+            internal Frame(Frame nextFrame)
             {
-                rolls = isLast ? new int[3] : new int[2];
+                this.nextFrame = nextFrame;
+                Rolls = nextFrame is null ? new int[3] : new int[2];
             }
 
             private byte currentRoll = 0;
@@ -49,14 +53,20 @@ namespace BowlingGame
             {
                 if (IsFinished)
                     return;
-                rolls[currentRoll++] = pins;
-                if (currentRoll == rolls.Length)
-                    IsFinished = true;
+                Rolls[currentRoll++] = pins;
+
+                if (currentRoll != Rolls.Length) return;
+                IsFinished = true;
+                if (Rolls.Sum() == 10)
+                    IsSpare = true;
             }
 
             internal int GetScore()
             {
-                return rolls.Sum();
+                var score = Rolls.Sum();
+                if (IsSpare && nextFrame != null)
+                    score += nextFrame.Rolls[0];
+                return score;
             }
 
             internal bool IsFinished = false;
@@ -121,6 +131,27 @@ namespace BowlingGame
             var score = game.GetScore();
             game.Roll(1);
             game.GetScore().Should().Be(score);
+        }
+
+        [Test]
+        public void GetBonusAfterSpareInNotLastFrame()
+        {
+            game.Roll(5);
+            game.Roll(5);
+            game.Roll(2);
+            game.Roll(1);
+
+            game.GetScore().Should().Be(15);
+        }
+        [Test]
+        public void GetBonusAfterStrikeInNotLastFrame()
+        {
+            game.Roll(5);
+            game.Roll(5);
+            game.Roll(2);
+            game.Roll(1);
+
+            game.GetScore().Should().Be(16);
         }
     }
 }
