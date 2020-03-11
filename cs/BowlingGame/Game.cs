@@ -146,7 +146,7 @@ namespace BowlingGame
         }
 
         [Test]
-        public void ScoreDoestChange_After21Rolls()
+        public void GetScoreDoestChange_After21Rolls()
         {
             for (int i = 0; i < 21; i++)
             {
@@ -189,7 +189,7 @@ namespace BowlingGame
             game.GetScore().Should().Be(35);
         }
         [Test]
-        public void CorrectWorkWith2StrikesInLastFrame()
+        public void GetCorrectScoreWith2StrikesInLastFrame()
         {
             for (int i = 0; i < 18; i++)
             {
@@ -201,7 +201,7 @@ namespace BowlingGame
             game.GetScore().Should().Be(48);
         }
         [Test]
-        public void CorrectWorkWithSpareInLastFrame()
+        public void GetCorrectScoreWithSpareInLastFrame()
         {
             for (int i = 0; i < 18; i++)
             {
@@ -221,7 +221,7 @@ namespace BowlingGame
         }
 
         [Test]
-        public void CorrectWorkInLastFrame()
+        public void GetCorrectScoreInLastFrame()
         {
             for (int i = 0; i < 18; i++)
             {
